@@ -139,11 +139,12 @@ if DEBUG:
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 import os
-
+'''
 if "STRIPE_PUBLISHABLE_KEY" in os.environ and "STRIPE_API_KEY" in os.environ and "STRIPE_PRICE_ID" in os.environ:
     STRIPE_PUBLISHABLE_KEY  = os.environ["STRIPE_PUBLISHABLE_KEY"]
     STRIPE_API_KEY          = os.environ["STRIPE_API_KEY"]
     STRIPE_PRICE_ID         = os.environ["STRIPE_PRICE_ID"]
+'''    
 
 if not DEBUG:
 
@@ -195,4 +196,8 @@ if not DEBUG:
             }
 
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.RawMediaCloudinaryStorage'
+
+    STRIPE_PUBLISHABLE_KEY  = os.environ["STRIPE_PUBLISHABLE_KEY"]
+    STRIPE_API_KEY          = os.environ["STRIPE_API_KEY"]
+    STRIPE_PRICE_ID         = os.environ["STRIPE_PRICE_ID"]
     
