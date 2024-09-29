@@ -27,6 +27,52 @@ DEBUG = False
 
 ALLOWED_HOSTS = []
 
+#################django-allauthでのメール認証設定ここから###################
+
+#djangoallauthでメールでユーザー認証する際に必要になる認証バックエンド
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+
+#ログイン時の認証方法はemailとパスワードとする
+ACCOUNT_AUTHENTICATION_METHOD   = "email"
+
+#ログイン時にユーザー名(ユーザーID)は使用しない
+ACCOUNT_USERNAME_REQUIRED       = False
+
+#ユーザー登録時に入力したメールアドレスに、確認メールを送信する事を必須(mandatory)とする
+ACCOUNT_EMAIL_VARIFICATION  = "mandatory"
+
+#ユーザー登録画面でメールアドレス入力を要求する(True)
+ACCOUNT_EMAIL_REQUIRED      = True
+
+
+#DEBUGがTrueのとき、メールの内容は全て端末に表示させる
+if DEBUG:
+    # 開発中はターミナルに出力する。
+    EMAIL_BACKEND   = "django.core.mail.backends.console.EmailBackend"
+else:
+    # もし、Gmailのアプリパスワードが取得できない場合は、↓を有効にする。
+    EMAIL_BACKEND   = "django.core.mail.backends.console.EmailBackend"
+
+    # 課題レビュアーから、メール認証用のメールが届いていない場合は、セキュリティ上アプリパスワードを取得することができなかった旨を説明。
+
+    """
+    EMAIL_BACKEND   = 'django.core.mail.backends.smtp.EmailBackend'
+    #  ホストはgmail.com 
+    EMAIL_HOST      = 'smtp.gmail.com'
+
+    #メールを暗号化する
+    EMAIL_USE_TLS   = True
+    EMAIL_PORT      = 587
+
+    #【重要】メールのパスワードとメールアドレスの入力後、GitHubへのプッシュは厳禁
+    EMAIL_HOST_USER     = os.environ["EMAIL_ADDRESS"]
+    EMAIL_HOST_PASSWORD = os.environ["EMAIL_PASSWORD"]
+    """
+#################django-allauthでのメール認証設定ここまで###################
+
 SITE_ID = 1
 
 LOGIN_REDIRECT_URL = '/'
