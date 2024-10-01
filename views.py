@@ -141,7 +141,7 @@ class MypageView(LoginRequiredMixin,View):
         context["reviews"] = Review.objects.filter(user=request.user)
         context["reservations"] = Reservation.objects.filter(user=request.user)
 
-        context["is_premium"] = PremiumUser.objects.filter(user=request.user).exist() 
+        context["is_premium"] = PremiumUser.objects.filter(user=request.user).exists()
         return render(request, "mypage.html", context)
 
 
