@@ -1,5 +1,3 @@
 release: python manage.py migrate
-release: python manage.py loaddata data3.json
-release: python manage.py loaddata data4.json
-
+release: python create.py
 web: gunicorn config.wsgi:application --log-file -
