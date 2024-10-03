@@ -58,7 +58,7 @@ else:
 
     # 課題レビュアーから、メール認証用のメールが届いていない場合は、セキュリティ上アプリパスワードを取得することができなかった旨を説明。
 
-    """
+    
     EMAIL_BACKEND   = 'django.core.mail.backends.smtp.EmailBackend'
     #  ホストはgmail.com 
     EMAIL_HOST      = 'smtp.gmail.com'
@@ -70,7 +70,7 @@ else:
     #【重要】メールのパスワードとメールアドレスの入力後、GitHubへのプッシュは厳禁
     EMAIL_HOST_USER     = os.environ["EMAIL_ADDRESS"]
     EMAIL_HOST_PASSWORD = os.environ["EMAIL_PASSWORD"]
-    """
+    
 #################django-allauthでのメール認証設定ここまで###################
 
 SITE_ID = 1
