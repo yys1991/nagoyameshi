@@ -23,9 +23,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-q0*^lcu^xy7x*$4=d8w*g9ognbybg20@hqg+#icd(rt1)=y4ml'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = []
+
+import os
 
 #################django-allauthでのメール認証設定ここから###################
 
@@ -185,12 +187,16 @@ if DEBUG:
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 import os
-'''
+
 if "STRIPE_PUBLISHABLE_KEY" in os.environ and "STRIPE_API_KEY" in os.environ and "STRIPE_PRICE_ID" in os.environ:
     STRIPE_PUBLISHABLE_KEY  = os.environ["STRIPE_PUBLISHABLE_KEY"]
     STRIPE_API_KEY          = os.environ["STRIPE_API_KEY"]
     STRIPE_PRICE_ID         = os.environ["STRIPE_PRICE_ID"]
-'''    
+
+else:
+    STRIPE_API_KEY = ""
+
+
 
 if not DEBUG:
 
@@ -243,7 +249,5 @@ if not DEBUG:
 
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.RawMediaCloudinaryStorage'
 
-    STRIPE_PUBLISHABLE_KEY  = os.environ["STRIPE_PUBLISHABLE_KEY"]
-    STRIPE_API_KEY          = os.environ["STRIPE_API_KEY"]
-    STRIPE_PRICE_ID         = os.environ["STRIPE_PRICE_ID"]
+    
     
