@@ -4,32 +4,41 @@
 <h2>マイページ</h2>
 
 <h2>お気に入りした店舗</h2>
-
-{% for favorite in favorites %}
-<div>
-    <a href="{% url 'restaurant' favorite.restaurant.id %}">{{ favorite.restaurant.name }}</a>
-</div>
-{% endfor %}
+{% if favorites %}
+    {% for favorite in favorites %}
+    <div>
+        <a href="{% url 'restaurant' favorite.restaurant.id %}">{{ favorite.restaurant.name }}</a>
+    </div>
+    {% endfor %}
+{% else %}
+    <p>お気に入りした店舗はありません。</p>
+{% endif %}    
 
 
 <h2>投稿したレビュー一覧</h2>
-
-{% for review in reviews %}
-<div>
-    <div>店舗: {{ review.restaurant.name }}</div>
-    <div>投稿内容: {{ review.content }}</div>
-</div>
-{% endfor %}
+{% if reviews %}
+    {% for review in reviews %}
+    <div>
+        <div>店舗: {{ review.restaurant.name }}</div>
+        <div>投稿内容: {{ review.content }}</div>
+    </div>
+    {% endfor %}
+{% else %}
+    <p>投稿したレビューはありません。</p>
+{% endif %}
 
 <h2>予約した店舗一覧</h2>
-
-{% for reservation in reservations %}
-<div>
-    <div>店舗: {{ reservation.restaurant.name }}</div>
-    <div>予約日時: {{ reservation.datetime }}</div>
-    <div>予約人数: {{ reservation.headcount }}</div>
-</div>
-{% endfor %}
+{% if reservations %}
+    {% for reservation in reservations %}
+    <div>
+        <div>店舗: {{ reservation.restaurant.name }}</div>
+        <div>予約日時: {{ reservation.datetime }}</div>
+        <div>予約人数: {{ reservation.headcount }}</div>
+    </div>
+    {% endfor %}
+{% else %}
+    <p>予約した店舗はありません。</p>
+{% endif %}
 
 <h2>有料会員登録</h2>
 

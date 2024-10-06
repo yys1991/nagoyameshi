@@ -49,7 +49,7 @@ class TopView(View):
 
 
 
-class RestaurantView(LoginRequiredMixin,View):
+"""class RestaurantView(LoginRequiredMixin,View):
     def get(self,request,pk):
         
         print(pk)
@@ -61,9 +61,24 @@ class RestaurantView(LoginRequiredMixin,View):
         context["reviews"] = Review.objects.filter(restaurant=pk)
 
         return render(request, "restaurant.html",context)
+"""
+class RestaurantView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        restaurant = Restaurant.objects.filter(id=pk).first()
+
+        # 現在のレストランがユーザーのお気に入りに登録されているかチェック
+        is_favorite = Favorite.objects.filter(user=request.user, restaurant=restaurant).exists()
+
+        context = {
+            "restaurant": restaurant,
+            "reviews": Review.objects.filter(restaurant=pk),
+            "is_favorite": is_favorite,  # お気に入りかどうかのフラグをコンテキストに追加
+        }
+
+        return render(request, "restaurant.html", context)
 
 
-class ReviewView(LoginRequiredMixin, View):
+"""class ReviewView(LoginRequiredMixin, View):
     def post(self,request,pk):
 
         print(pk, "に対してレビュー")
@@ -72,10 +87,10 @@ class ReviewView(LoginRequiredMixin, View):
         request.user
         request.POST["content"]        
 
-        """
+        
         review = Review(restaurant=restaurant, user=request.user, content=request.POST["content"])
         review.save()   
-        """
+        
         
         copied = request.POST.copy()
         copied["user"] = request.user
@@ -90,9 +105,29 @@ class ReviewView(LoginRequiredMixin, View):
             print(form.errors)
 
         return redirect("top")
+"""
+class ReviewView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        print(pk, "に対してレビュー")
+
+        restaurant = Restaurant.objects.filter(id=pk).first()
+        copied = request.POST.copy()
+        copied["user"] = request.user
+        copied["restaurant"] = restaurant
+
+        # フォームのインスタンスを作成して変数 `form` に格納
+        form = ReviewForm(copied)
+
+        if form.is_valid():  # バリデーションチェック
+            print("バリデーションOK")
+            form.save()  # フォームデータを保存
+            return redirect("restaurant", pk=pk)  # レストラン詳細ページにリダイレクト
+        else:
+            print(form.errors)  # バリデーションエラーがあれば表示
+            return redirect("restaurant", pk=pk)  # エラーメッセージを表示して元のページに戻す
 
 
-class FavoriteView(LoginRequiredMixin,View):
+"""class FavoriteView(LoginRequiredMixin,View):
     def post(self, request,pk):
         restaurant = Restaurant.objects.filter(id=pk).first()
 
@@ -109,6 +144,34 @@ class FavoriteView(LoginRequiredMixin,View):
             print(form.errors)
 
         return redirect("top")
+"""
+class FavoriteView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        restaurant = Restaurant.objects.filter(id=pk).first()
+
+        # 既にお気に入りに登録されているかチェック
+        existing_favorite = Favorite.objects.filter(user=request.user, restaurant=restaurant).first()
+
+        if existing_favorite:
+            # 既にお気に入りに登録されている場合は解除（削除）
+            existing_favorite.delete()
+            print("お気に入りを解除しました。")
+        else:
+            # まだお気に入りに登録されていない場合は新規登録
+            copied = request.POST.copy()
+            copied["user"] = request.user
+            copied["restaurant"] = restaurant
+
+            form = FavoriteForm(copied)
+            if form.is_valid():
+                form.save()
+                print("お気に入りに登録しました。")
+            else:
+                print(form.errors)
+
+        # お気に入りの状態に応じてレストラン詳細ページにリダイレクト
+        return redirect("restaurant", pk=pk)
+
 
 
 class ReservationView(LoginRequiredMixin,View):
@@ -141,7 +204,9 @@ class MypageView(LoginRequiredMixin,View):
         context["reviews"] = Review.objects.filter(user=request.user)
         context["reservations"] = Reservation.objects.filter(user=request.user)
 
+        context["is_premium"] = PremiumUser.objects.filter(user=request.user).exists()
         return render(request, "mypage.html", context)
+
 
 
 class CheckoutView(LoginRequiredMixin,View):

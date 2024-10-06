@@ -48,10 +48,18 @@
 
     <h2>お気に入りする</h2>
 
+    {% if is_favorite %}
+   
+         <form action="{% url 'favorite' restaurant.id %}" method="post">
+            {% csrf_token %}
+            <input type="submit" value="お気に入り解除">
+        </form>
+{% else %}
+ 
     <form action="{% url 'favorite' restaurant.id %}" method="post">
         {% csrf_token %}
         <input type="submit" value="お気に入りする">
     </form>
+{% endif %}
 
-
-    {% endblock %}
+{% endblock %}
