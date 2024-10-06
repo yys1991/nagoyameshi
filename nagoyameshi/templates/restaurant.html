@@ -16,6 +16,10 @@
 
 <h2>店舗レビューフォーム</h2>
 
+{% if error %}
+    <p class="error">{{ error }}</p>  <!-- エラーメッセージを表示 -->
+{% endif %}
+
 <form action="{% url 'review' restaurant.id %}" method="post">
     {% csrf_token %}
 

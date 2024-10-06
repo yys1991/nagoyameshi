@@ -3,6 +3,18 @@
 {% block main %}
 <h2>マイページ</h2>
 
+<h2>会員情報の編集</h2>
+
+<form action="" method="post">
+
+    {% csrf_token %}
+    <input type="text" name="first_name" value="{{ request.user.first_name }}">
+    <input type="text" name="last_name" value="{{ request.user.last_name }}">
+    <input type="submit">
+
+</form>
+
+
 <h2>お気に入りした店舗</h2>
 {% if favorites %}
     {% for favorite in favorites %}

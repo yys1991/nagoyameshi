@@ -155,13 +155,23 @@ class ReviewView(LoginRequiredMixin, View):
     def post(self, request, pk):
         print(pk, "に対してレビュー")
 
+        # レストランを取得
         restaurant = Restaurant.objects.filter(id=pk).first()
-        copied = request.POST.copy()
-        copied["user"] = request.user
-        copied["restaurant"] = restaurant
 
-        # フォームのインスタンスを作成して変数 `form` に格納
-        form = ReviewForm(copied)
+        # 1. ユーザーが有料会員かどうかを確認
+        if not PremiumUser.objects.filter(user=request.user).exists():
+            # 無料会員の場合、エラーメッセージを渡してレストラン詳細ページに戻る
+            return render(request, "restaurant.html", {
+                "restaurant": restaurant,
+                "error": "有料会員のみレビューを投稿できます。"  # ここでエラーメッセージを渡す
+            })
+
+        # POSTデータのコピー
+        form = ReviewForm(request.POST)
+
+        # userとrestaurantをフォームのインスタンスにセット
+        form.instance.user = request.user
+        form.instance.restaurant = restaurant
 
         if form.is_valid():  # バリデーションチェック
             print("バリデーションOK")
@@ -169,7 +179,12 @@ class ReviewView(LoginRequiredMixin, View):
             return redirect("restaurant", pk=pk)  # レストラン詳細ページにリダイレクト
         else:
             print(form.errors)  # バリデーションエラーがあれば表示
-            return redirect("restaurant", pk=pk)  # エラーメッセージを表示して元のページに戻す
+            # フォームが無効な場合、エラーとともにレストラン詳細ページにリダイレクト
+            return render(request, "restaurant.html", {
+                "restaurant": restaurant,
+                "form": form,  # フォームのエラーも渡す
+                "error": "レビューの投稿に失敗しました。"  # 失敗時のエラーメッセージ
+            })
 
 
 """class FavoriteView(LoginRequiredMixin,View):
@@ -282,6 +297,14 @@ class MypageView(LoginRequiredMixin,View):
 
         context["is_premium"] = PremiumUser.objects.filter(user=request.user).exists()
         return render(request, "mypage.html", context)
+    
+    def post(self, request):
+
+        request.user.first_name = request.POST["first_name"]
+        request.user.last_name = request.POST["last_name"]
+
+
+        return redirect("mypage")
 
 
 
