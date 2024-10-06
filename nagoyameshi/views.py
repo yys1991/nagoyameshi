@@ -9,8 +9,28 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.conf import settings
 from django.urls import reverse_lazy
 import stripe
+stripe.api_key  = settings.STRIPE_API_KEY
+from django.http import HttpResponseForbidden
+
 
 stripe.api_key  = settings.STRIPE_API_KEY
+
+from allauth.account.admin import EmailAddress
+from django.contrib.auth.mixins import AccessMixin
+
+class LoginRequiredMixin(AccessMixin):
+
+    def dispatch(self, request, *args, **kwargs):
+
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+
+        if not EmailAddress.objects.filter(user=request.user.id,verified=True).exists():
+            print("メールの確認が済んでいません")
+            return redirect("account_email")
+
+        #HttpResponseを返却する。
+        return super().dispatch(request, *args, **kwargs)
 
 class CancelReservationView(LoginRequiredMixin, View):
     def post(self, request, pk):
@@ -75,18 +95,28 @@ class TopView(View):
 """
 class RestaurantView(LoginRequiredMixin, View):
     def get(self, request, pk):
+        print(pk, "に対してレビュー")
         restaurant = Restaurant.objects.filter(id=pk).first()
+        request.user
+        request.POST["content"]    
 
-        # 現在のレストランがユーザーのお気に入りに登録されているかチェック
-        is_favorite = Favorite.objects.filter(user=request.user, restaurant=restaurant).exists()
+        review = Review(restaurant=restaurant, user=request.user, content=request.POST["content"])
+        review.save()   
+        
+        
+        copied = request.POST.copy()
+        copied["user"] = request.user
+        copied["restaurant"] = restaurant
 
-        context = {
-            "restaurant": restaurant,
-            "reviews": Review.objects.filter(restaurant=pk),
-            "is_favorite": is_favorite,  # お気に入りかどうかのフラグをコンテキストに追加
-        }
+        ReviewForm(copied)    
 
-        return render(request, "restaurant.html", context)
+        if form.is_valid():
+            print("バリデーションOK")
+            form.save()
+        else:
+            print(form.errors)
+
+        return redirect("top")
 
 
 """class ReviewView(LoginRequiredMixin, View):
@@ -380,9 +410,24 @@ class EditReviewView(LoginRequiredMixin, View):
             return HttpResponseForbidden("有料会員のみレビューを編集できます。")
 
         form = ReviewForm(instance=review)
-        return render(request, "edit_review.html", {"form": form})
+        return render(request, "edit_review.html", {"form": form , "review":review})
+
 
     def post(self, request, pk):
+        # レビューを取得
+        review = get_object_or_404(Review, pk=pk)
+
+        # レビューの投稿者が現在のユーザーでない場合はエラーを返す
+        if review.user != request.user:
+            return HttpResponseForbidden("このレビューを編集する権限がありません。")
+
+        # 有料会員でない場合もエラー
+        if not PremiumUser.objects.filter(user=request.user).exists():
+            return HttpResponseForbidden("有料会員のみレビューを編集できます。")
+
+        form = ReviewForm(instance=review)
+        return render(request, "edit_review.html", {"form": form , "review":review})
+def post(self, request, pk):
         # レビューを取得
         review = get_object_or_404(Review, pk=pk)
 
@@ -399,7 +444,7 @@ class EditReviewView(LoginRequiredMixin, View):
         if form.is_valid():
             form.save()
             return redirect("mypage")  # 編集後にマイページにリダイレクト
-        return render(request, "edit_review.html", {"form": form})
+        return render(request, "edit_review.html", {"form": form, "review":review})
 
 class DeleteReviewView(LoginRequiredMixin, View):
     def post(self, request, pk):
