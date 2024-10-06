@@ -1,4 +1,4 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render,redirect, get_object_or_404
 from django.views import View
 from .models import Restaurant,Category,Review,Favorite,Reservation,PremiumUser
 from .forms import ReviewForm,FavoriteForm,ReservationForm
@@ -11,6 +11,17 @@ from django.urls import reverse_lazy
 import stripe
 
 stripe.api_key  = settings.STRIPE_API_KEY
+
+class CancelReservationView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        # ログインユーザーが予約したものかを確認
+        reservation = get_object_or_404(Reservation, id=pk, user=request.user)
+
+        # 予約が見つかったら削除
+        reservation.delete()
+
+        # 予約が削除された後、マイページにリダイレクト
+        return redirect("mypage")
 
 class TopView(View):
     def get(self,request):
@@ -147,6 +158,11 @@ class ReviewView(LoginRequiredMixin, View):
 """
 class FavoriteView(LoginRequiredMixin, View):
     def post(self, request, pk):
+        # 有料会員かどうか確認
+        if not PremiumUser.objects.filter(user=request.user).exists():
+            return HttpResponseForbidden("有料会員のみお気に入り登録ができます。")
+
+        # レストランを取得
         restaurant = Restaurant.objects.filter(id=pk).first()
 
         # 既にお気に入りに登録されているかチェック
@@ -174,7 +190,7 @@ class FavoriteView(LoginRequiredMixin, View):
 
 
 
-class ReservationView(LoginRequiredMixin,View):
+"""class ReservationView(LoginRequiredMixin,View):
     def post(self, request,pk):
 
         restaurant = Restaurant.objects.filter(id=pk).first()   
@@ -192,7 +208,33 @@ class ReservationView(LoginRequiredMixin,View):
             print(form.errors)
 
         return redirect("top")
+"""
+class ReservationView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        # 有料会員かどうか確認
+        if not PremiumUser.objects.filter(user=request.user).exists():
+            return HttpResponseForbidden("有料会員のみご利用いただけます。")
 
+        # レストランを取得
+        restaurant = get_object_or_404(Restaurant, id=pk)
+
+        # フォームデータをPOSTからコピーし、userとrestaurantを追加
+        form_data = request.POST.copy()
+        form_data.update({
+            "user": request.user,
+            "restaurant": restaurant
+        })
+
+        # フォームインスタンスを作成
+        form = ReservationForm(form_data)
+
+        # フォームが有効な場合、保存し、トップページにリダイレクト
+        if form.is_valid():
+            form.save()
+            return redirect("top")
+        else:
+            print(form.errors)  # デバッグ用エラーメッセージ
+            return render(request, "reservation.html", {"form": form, "restaurant": restaurant})
 
 
 class MypageView(LoginRequiredMixin,View):
@@ -324,3 +366,54 @@ class PremiumView(View):
         return redirect("mypage")
 
 
+class EditReviewView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        # レビューを取得
+        review = get_object_or_404(Review, pk=pk)
+
+        # レビューの投稿者が現在のユーザーでない場合はエラーを返す
+        if review.user != request.user:
+            return HttpResponseForbidden("このレビューを編集する権限がありません。")
+
+        # 有料会員でない場合もエラー
+        if not PremiumUser.objects.filter(user=request.user).exists():
+            return HttpResponseForbidden("有料会員のみレビューを編集できます。")
+
+        form = ReviewForm(instance=review)
+        return render(request, "edit_review.html", {"form": form})
+
+    def post(self, request, pk):
+        # レビューを取得
+        review = get_object_or_404(Review, pk=pk)
+
+        # レビューの投稿者が現在のユーザーでない場合はエラーを返す
+        if review.user != request.user:
+            return HttpResponseForbidden("このレビューを編集する権限がありません。")
+
+        # 有料会員でない場合もエラー
+        if not PremiumUser.objects.filter(user=request.user).exists():
+            return HttpResponseForbidden("有料会員のみレビューを編集できます。")
+
+        form = ReviewForm(request.POST, instance=review)
+
+        if form.is_valid():
+            form.save()
+            return redirect("mypage")  # 編集後にマイページにリダイレクト
+        return render(request, "edit_review.html", {"form": form})
+
+class DeleteReviewView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        # レビューを取得
+        review = get_object_or_404(Review, pk=pk)
+
+        # レビューの投稿者が現在のユーザーでない場合はエラーを返す
+        if review.user != request.user:
+            return HttpResponseForbidden("このレビューを削除する権限がありません。")
+
+        # 有料会員でない場合もエラー
+        if not PremiumUser.objects.filter(user=request.user).exists():
+            return HttpResponseForbidden("有料会員のみレビューを削除できます。")
+
+        # レビュー削除
+        review.delete()
+        return redirect("mypage")

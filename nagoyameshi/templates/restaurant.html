@@ -24,17 +24,32 @@
     </form>
 
     <h2>店舗レビュー一覧</h2>
-
-    {{ reviews }}
-    
+{% if reviews %}
     {% for review in reviews %}
-<div class="border">
-    <div>投稿日時: {{ review.created_at }}</div>
-    <div>投稿者: {{ review.user }}</div>
-    <div>レビュー: {{ review.content }}</div>
-</div>
-{% endfor %}
+        <div class="border">
+        <div>投稿日時: {{ review.created_at }}</div>
+        <div>投稿者: {{ review.user }}</div>
+        <div>レビュー: {{ review.content }}</div>
+    </div>
+    {% endfor %}
+{% else %}
+    <pまだレビューはありません。</P>
+{% endif %}
 
+<h2>予約一覧</h2>
+{% for reservation in reservations %}
+    <div class="border">
+        <div>店舗: {{ reservation.restaurant.name }}</div>
+        <div>予約日時: {{ reservation.datetime }}</div>
+        <div>予約人数: {{ reservation.headcount }}</div>
+
+        <!-- 予約キャンセルボタン -->
+        <form action="{% url 'cancel_reservation' reservation.id %}" method="post">
+            {% csrf_token %}
+            <input type="submit" value="予約をキャンセル">
+        </form>
+    </div>
+{% endfor %}
 
     <h2>店舗予約</h2>
 
