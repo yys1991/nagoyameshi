@@ -5,14 +5,14 @@
 
 <h2>会員情報の編集</h2>
 
-<form action="" method="post">
-
+<form action="{% url 'edit_profile' %}" method="post">
     {% csrf_token %}
-    <input type="text" name="first_name" value="{{ request.user.first_name }}">
-    <input type="text" name="last_name" value="{{ request.user.last_name }}">
-    <input type="submit">
-
+    
+    <input type="email" name="email" value="{{ form.email.value|default:request.user.email }}">
+    <input type="password" name="password" placeholder="新しいパスワード (任意)">
+    <input type="submit" value="保存">
 </form>
+
 
 
 <h2>お気に入りした店舗</h2>
@@ -69,14 +69,20 @@
 <h2>有料会員登録</h2>
 
 {% if is_premium %}
+    <!-- プレミアム会員の場合 -->
+    <a href="{% url 'portal' %}">有料会員設定</a>
 
-<a href="{% url 'portal' %}">有料会員設定</a>
+    <!-- プレミアム会員解約ボタン -->
+    <form action="{% url 'cancel_premium' %}" method="post">
+        {% csrf_token %}
+        <input type="submit" value="有料会員を解約する">
+    </form>
 {% else %}
-
-<form action="{% url 'checkout' %}" method="post">
-    {% csrf_token %}
-    <input type="submit" value="有料会員登録をする">
-</form>
+    <!-- プレミアム会員でない場合 -->
+    <form action="{% url 'checkout' %}" method="post">
+        {% csrf_token %}
+        <input type="submit" value="有料会員登録をする">
+    </form>
 {% endif %}
 
 {% endblock %}

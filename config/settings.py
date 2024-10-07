@@ -193,6 +193,7 @@ if "STRIPE_PUBLISHABLE_KEY" in os.environ and "STRIPE_API_KEY" in os.environ and
     STRIPE_API_KEY          = os.environ["STRIPE_API_KEY"]
     STRIPE_PRICE_ID         = os.environ["STRIPE_PRICE_ID"]
 
+
 else:
     STRIPE_API_KEY = ""
 

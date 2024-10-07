@@ -9,6 +9,11 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.conf import settings
 from django.urls import reverse_lazy
 import stripe
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.models import User
+from .forms import UserProfileForm
+from django.contrib.auth.decorators import login_required
 
 stripe.api_key  = settings.STRIPE_API_KEY
 
@@ -474,3 +479,50 @@ class DeleteReviewView(LoginRequiredMixin, View):
         # レビュー削除
         review.delete()
         return redirect("mypage")
+
+class EditProfileView(View):
+    def get(self, request):
+        # ユーザーのプロフィール情報を取得し、フォームに渡す
+        form = UserProfileForm(instance=request.user)
+
+        context = {
+            'form': form
+        }
+
+        return render(request, "edit_profile.html", context)
+
+    def post(self, request):
+        # フォームをPOSTデータで初期化
+        form = UserProfileForm(request.POST, instance=request.user)
+
+        if form.is_valid():
+            # フォームが有効な場合
+            new_password = form.cleaned_data.get('password')
+            if new_password:
+                # パスワードが変更された場合
+                request.user.set_password(new_password)
+                request.user.save()
+                # セッションの認証情報を更新
+                update_session_auth_hash(request, request.user)
+            else:
+                # パスワードが変更されていない場合は、他の情報を保存
+                form.save()
+
+            # 更新後、マイページにリダイレクト
+            return redirect('mypage')
+
+        # フォームが無効な場合、再度フォームを表示
+        return render(request, "edit_profile.html", {'form': form})
+
+def mypage_view(request):
+    # プレミアム会員情報を取得
+    is_premium = PremiumUser.objects.filter(user=request.user, is_active=True).exists()
+
+    context = {
+        'favorites': Favorite.objects.filter(user=request.user),
+        'reviews': Review.objects.filter(user=request.user),
+        'reservations': Reservation.objects.filter(user=request.user),
+        'is_premium': is_premium,  # プレミアム会員かどうかを渡す
+    }
+
+    return render(request, 'mypage.html', context)
