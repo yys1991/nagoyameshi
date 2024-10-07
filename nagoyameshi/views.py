@@ -14,6 +14,8 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import User
 from .forms import UserProfileForm
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+
 
 stripe.api_key  = settings.STRIPE_API_KEY
 
@@ -384,13 +386,17 @@ class PortalView(LoginRequiredMixin,View):
             print( "有料会員登録されていません")
             return redirect("mypage")
 
+        try:
         # ユーザーモデルに記録しているカスタマーIDを使って、ポータルサイトへリダイレクト
-        portalSession   = stripe.billing_portal.Session.create(
-            customer    = premium_user.premium_code,
-            return_url  = request.build_absolute_uri(reverse_lazy("mypage")),
-        )
+            portalSession   = stripe.billing_portal.Session.create(
+                customer    = premium_user.premium_code,
+                return_url  = request.build_absolute_uri(reverse_lazy("mypage")),
+            )
 
-        return redirect(portalSession.url)
+            return redirect(portalSession.url)
+        except Exception as e:
+            print(f"エラーが発生しました: {str(e)}")
+            return JsonResponse({'error': str(e)}, status=400)
 
 
 
@@ -526,3 +532,8 @@ def mypage_view(request):
     }
 
     return render(request, 'mypage.html', context)
+
+class CancelPremiumView(View):
+    def get(self, request):
+        # 処理内容
+        return render(request, 'mypage.html') 

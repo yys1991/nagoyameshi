@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
-from nagoyameshi.views import TopView,RestaurantView,ReviewView,FavoriteView,ReservationView,MypageView,SuccessView,CheckoutView,PremiumView,PortalView,CancelReservationView,EditReviewView, DeleteReviewView,EditProfileView
+from nagoyameshi.views import TopView,RestaurantView,ReviewView,FavoriteView,ReservationView,MypageView,SuccessView,CheckoutView,PremiumView,PortalView,CancelReservationView,EditReviewView, DeleteReviewView,EditProfileView,CancelPremiumView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -37,4 +37,5 @@ urlpatterns = [
     path('review/edit/<int:pk>/', EditReviewView.as_view(), name='edit_review'),
     path('review/delete/<int:pk>/', DeleteReviewView.as_view(), name='delete_review'),
     path('edit-profile/', EditProfileView.as_view(), name='edit_profile'),
+    path('cancel-premium/', CancelPremiumView.as_view(), name='cancel_premium'),
 ]
