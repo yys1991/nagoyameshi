@@ -7,9 +7,11 @@
 
 <form action="{% url 'edit_profile' %}" method="post">
     {% csrf_token %}
-    
     <input type="email" name="email" value="{{ form.email.value|default:request.user.email }}">
     <input type="password" name="password" placeholder="新しいパスワード (任意)">
+
+    <input type="text" name="first_name" value="{{ request.user.first_name }}">
+    <input type="text" name="last_name" value="{{ request.user.last_name }}">
     <input type="submit" value="保存">
 </form>
 
@@ -73,10 +75,7 @@
     <a href="{% url 'portal' %}">有料会員設定</a>
 
     <!-- プレミアム会員解約ボタン -->
-    <form action="{% url 'cancel_premium' %}" method="post">
-        {% csrf_token %}
-        <input type="submit" value="有料会員を解約する">
-    </form>
+   
 {% else %}
     <!-- プレミアム会員でない場合 -->
     <form action="{% url 'checkout' %}" method="post">
