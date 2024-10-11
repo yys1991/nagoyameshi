@@ -485,7 +485,7 @@ class DeleteReviewView(LoginRequiredMixin, View):
         # レビュー削除
         review.delete()
         return redirect("mypage")
-
+"""
 class EditProfileView(View):
     def get(self, request):
         # ユーザーのプロフィール情報を取得し、フォームに渡す
@@ -532,8 +532,61 @@ def mypage_view(request):
     }
 
     return render(request, 'mypage.html', context)
+"""
+
+class EditProfileView(View):
+    def get(self, request):
+        # 各フォームのインスタンスを作成
+        email_form = UserProfileForm(instance=request.user)
+        name_form = UserProfileForm(instance=request.user)
+        password_form = PasswordChangeForm(user=request.user)
+        
+        return render(request, 'edit_profile.html', {
+            'email_form': email_form,
+            'name_form': name_form,
+            'password_form': password_form
+        })
+
+    def post(self, request):
+        # 各フォームのインスタンスを作成
+        email_form = UserProfileForm(request.POST, instance=request.user)
+        name_form = UserProfileForm(request.POST, instance=request.user)
+        password_form = PasswordChangeForm(user=request.user, data=request.POST)
+
+        # メールアドレスの更新
+        if 'update_email' in request.POST and email_form.is_valid():
+            email_form.save()
+            return redirect('edit_profile')
+
+        # 名前の更新
+        if 'update_name' in request.POST and name_form.is_valid():
+            name_form.save()
+            return redirect('edit_profile')
+
+        # パスワードの更新
+        if 'update_password' in request.POST and password_form.is_valid():
+            password_form.save()
+            update_session_auth_hash(request, request.user)  # セッションを更新
+            return redirect('edit_profile')
+
+        # フォームが無効な場合、再度フォームを表示
+        return render(request, 'edit_profile.html', {
+            'email_form': email_form,
+            'name_form': name_form,
+            'password_form': password_form
+        })
 
 class CancelPremiumView(View):
     def get(self, request):
-        # 処理内容
-        return render(request, 'mypage.html') 
+        # ログインユーザーがプレミアム会員か確認し、プレミアム会員であれば解除処理を実行
+        if request.user.is_authenticated:
+            try:
+                # プレミアムユーザーが存在する場合、それを削除する処理
+                premium_user = PremiumUser.objects.get(user=request.user)
+                premium_user.delete()
+                return redirect('mypage')  # 解約後、マイページへリダイレクト
+            except PremiumUser.DoesNotExist:
+                # プレミアム会員でない場合もマイページにリダイレクト
+                return redirect('mypage')
+        else:
+            return redirect('login') 

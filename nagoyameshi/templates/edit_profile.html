@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>会員情報の編集</h2>
+
+  <form method="post">
+    {% csrf_token %}
+    
+    <h3>メールアドレス</h3>
+    {{ email_form.as_p }}  <!-- メールアドレスフォーム -->
+    
+    <h3>名前</h3>
+    {{ name_form.as_p }}   <!-- 名前フォーム -->
+    
+    <h3>新しいパスワード</h3>
+    {{ password_form.as_p }}  <!-- パスワードフォーム -->
+    
+    <button type="submit" name="update_email">メールアドレスを更新</button>
+    <button type="submit" name="update_name">名前を更新</button>
+    <button type="submit" name="update_password">パスワードを更新</button>
+  </form>
+{% endblock %}
