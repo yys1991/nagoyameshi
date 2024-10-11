@@ -7,13 +7,36 @@
 
 <form action="{% url 'edit_profile' %}" method="post">
     {% csrf_token %}
-    <input type="email" name="email" value="{{ form.email.value|default:request.user.email }}">
-    <input type="password" name="password" placeholder="新しいパスワード (任意)">
+    
+    <!-- メールアドレス欄にプレースホルダーを追加 -->
+    <input type="email" id="email" name="email" 
+           value="{{ form.email.value|default:request.user.email }}" 
+           placeholder="メールアドレスを入力してください">
 
-    <input type="text" name="first_name" value="{{ request.user.first_name }}">
-    <input type="text" name="last_name" value="{{ request.user.last_name }}">
+    <!-- 新しいパスワード欄 -->
+    <input type="password" id="password" name="password" 
+           placeholder="新しいパスワードを入力してください" 
+           pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" 
+           title="8文字以上、大文字・小文字・数字を含む必要があります">
+
+    <!-- パスワード確認欄 -->
+    <input type="password" id="password_confirm" name="password_confirm" 
+           placeholder="パスワードを再入力してください">
+
+    <!-- 名前欄 -->
+    <input type="text" id="first_name" name="first_name" 
+           value="{{ request.user.first_name }}" 
+           placeholder="名前を入力してください">
+
+    <!-- 苗字欄 -->
+    <input type="text" id="last_name" name="last_name" 
+           value="{{ request.user.last_name }}" 
+           placeholder="苗字を入力してください">
+    
     <input type="submit" value="保存">
 </form>
+
+
 
 
 
