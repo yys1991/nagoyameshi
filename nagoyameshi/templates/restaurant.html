@@ -24,6 +24,8 @@
     {% csrf_token %}
 
     <textarea name="content" maxlength="100"></textarea>
+    <input type="hidden" name="user" value="{{ request.user.id }}">
+    <input type="hidden" name="restaurant" value="{{ restaurant.id }}">
     <input type="submit" value="投稿">
     </form>
 
