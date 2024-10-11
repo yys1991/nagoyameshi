@@ -386,49 +386,7 @@ class DeleteReviewView(LoginRequiredMixin, View):
         # レビュー削除
         review.delete()
         return redirect("mypage")
-"""
-class EditProfileView(View):
-    def get(self, request):
-        # 各フォームのインスタンスを作成
-        email_form = UserProfileForm(instance=request.user)
-        name_form = UserProfileForm(instance=request.user)
-        password_form = PasswordChangeForm(user=request.user)
-        
-        return render(request, 'edit_profile.html', {
-            'email_form': email_form,
-            'name_form': name_form,
-            'password_form': password_form
-        })
 
-    def post(self, request):
-        # 各フォームのインスタンスを作成
-        email_form = UserProfileForm(request.POST, instance=request.user)
-        name_form = UserProfileForm(request.POST, instance=request.user)
-        password_form = PasswordChangeForm(user=request.user, data=request.POST)
-
-        # メールアドレスの更新
-        if 'update_email' in request.POST and email_form.is_valid():
-            email_form.save()
-            return redirect('edit_profile')
-
-        # 名前の更新
-        if 'update_name' in request.POST and name_form.is_valid():
-            name_form.save()
-            return redirect('edit_profile')
-
-        # パスワードの更新
-        if 'update_password' in request.POST and password_form.is_valid():
-            password_form.save()
-            update_session_auth_hash(request, request.user)  # セッションを更新
-            return redirect('edit_profile')
-
-        # フォームが無効な場合、再度フォームを表示
-        return render(request, 'edit_profile.html', {
-            'email_form': email_form,
-            'name_form': name_form,
-            'password_form': password_form
-        })
-"""
 class EditProfileView(View):
     def get(self, request):
         # 初期フォームを表示する（まだ変更されていない状態）
@@ -465,6 +423,8 @@ class EditProfileView(View):
             'user': request.user,  # 更新後のユーザー情報
             'updated': True,  # フラグをTrueにして変更後の表示を示す
         })
+        
+
 
 class CancelPremiumView(View):
     def get(self, request):
@@ -480,3 +440,33 @@ class CancelPremiumView(View):
                 return redirect('mypage')
         else:
             return redirect('login') 
+
+
+def edit_profile(request):
+    if request.method == 'POST':
+        # フォームをインスタンス化（POSTデータを使用）
+        user_form = UserProfileForm(request.POST, instance=request.user)
+        
+        # フォームが有効なら保存処理を行う
+        if user_form.is_valid():
+            user = user_form.save(commit=False)
+            # パスワードが空でない場合にのみ更新
+            if user_form.cleaned_data['password']:
+                user.set_password(user_form.cleaned_data['password'])
+            user.save()
+
+            # セッションを更新する必要がある場合（パスワードが変更された場合）
+            update_session_auth_hash(request, user)
+            
+            # 変更後にマイページなどのページにリダイレクト
+            return redirect('mypage')
+        else:
+            # フォームが無効なら再度表示
+            return render(request, 'edit_profile.html', {'form': user_form})
+
+    else:
+        # 初回GETリクエストの場合、フォームを初期状態で表示
+        user_form = UserProfileForm(instance=request.user)
+    
+    return render(request, 'edit_profile.html', {'form': user_form})
+    

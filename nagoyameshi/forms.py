@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from . models import Review,Favorite,Reservation
-
+"""
 class UserProfileForm(forms.ModelForm):
     # パスワードフィールドをオプションにするが、フォーム送信時に空ならエラーメッセージを表示する
     password = forms.CharField(
@@ -36,7 +36,7 @@ class UserProfileForm(forms.ModelForm):
             self.add_error('password', 'パスワードは8文字以上である必要があります。')
 
         return cleaned_data
-
+"""
 class ReviewForm(forms.ModelForm):
 
     class Meta:
@@ -55,3 +55,23 @@ class ReservationForm(forms.ModelForm):
     class Meta:
         model = Reservation
         fields = [ "restaurant","user","datetime","headcount" ]
+
+
+
+from django import forms
+from django.contrib.auth.models import User
+
+class UserProfileForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput(), required=False)
+
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email', 'password']
+
+    def clean_password(self):
+        # パスワードが空でない場合はそのまま返す
+        password = self.cleaned_data.get('password')
+        if not password:
+            # 空欄の場合は変更しないことを示す
+            return None
+        return password

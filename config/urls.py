@@ -23,3 +23,4 @@ urlpatterns = [
     path('edit-profile/', EditProfileView.as_view(), name='edit_profile'),
     path('cancel-premium/', CancelPremiumView.as_view(), name='cancel_premium'),
 ]
+
