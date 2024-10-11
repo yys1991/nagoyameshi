@@ -1,22 +1,57 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>プロフィール編集</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
 
-{% block content %}
-  <h2>会員情報の編集</h2>
+<h1>プロフィール編集</h1>
 
-  <form method="post">
-    {% csrf_token %}
-    
-    <h3>メールアドレス</h3>
-    {{ email_form.as_p }}  <!-- メールアドレスフォーム -->
-    
-    <h3>名前</h3>
-    {{ name_form.as_p }}   <!-- 名前フォーム -->
-    
-    <h3>新しいパスワード</h3>
-    {{ password_form.as_p }}  <!-- パスワードフォーム -->
-    
-    <button type="submit" name="update_email">メールアドレスを更新</button>
-    <button type="submit" name="update_name">名前を更新</button>
-    <button type="submit" name="update_password">パスワードを更新</button>
-  </form>
-{% endblock %}
+{% if updated %}
+    <!-- フォーム送信後、変更後の情報を表示 -->
+    <h2>変更後の情報</h2>
+    <p>変更後のメールアドレス: {{ user.email }}</p>
+    <p>変更後の名前: {{ user.first_name }} {{ user.last_name }}</p>
+    <p>変更後のパスワード: ****（パスワードはセキュリティのため隠す）</p>
+{% else %}
+    <!-- フォーム送信前にフォームを表示 -->
+    <h2>現在の情報</h2>
+    <p>メールアドレス: {{ user.email }}</p>
+    <p>名前: {{ user.first_name }} {{ user.last_name }}</p>
+
+    <!-- メールアドレス編集フォーム -->
+    <form method="post" action="{% url 'edit_profile' %}">
+        {% csrf_token %}
+        <h2>メールアドレスの変更</h2>
+        {{ email_form.as_p }}
+        <button type="submit" name="update_email">更新</button>
+    </form>
+
+    <!-- 名前編集フォーム -->
+    <form method="post" action="{% url 'edit_profile' %}">
+        {% csrf_token %}
+        <h2>名前の変更</h2>
+        {{ name_form.as_p }}
+        <button type="submit" name="update_name">更新</button>
+    </form>
+
+    <!-- パスワード編集フォーム -->
+    <form method="post" action="{% url 'edit_profile' %}">
+        {% csrf_token %}
+        <h2>パスワードの変更</h2>
+        {{ password_form.as_p }}
+        <button type="submit" name="update_password">更新</button>
+    </form>
+{% endif %}
+
+<!-- 編集後に表示するメッセージ -->
+<div>
+    <a href="{% url 'mypage' %}">マイページに戻る</a>
+</div>
+
+</body>
+</html>
+

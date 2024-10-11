@@ -33,24 +33,6 @@ from django.http import HttpResponseForbidden
 
 from allauth.account.admin import EmailAddress
 from django.contrib.auth.mixins import AccessMixin
-"""
-class LoginRequiredMixin(AccessMixin):
-
-    def dispatch(self, request, *args, **kwargs):
-
-        if not request.user.is_authenticated:
-            return self.handle_no_permission()
-
-        if not EmailAddress.objects.filter(user=request.user.id,verified=True).exists():
-            print("メールの確認が済んでいません")
-            return redirect("account_email")
-
-        #HttpResponseを返却する。
-        return super().dispatch(request, *args, **kwargs)
-
-"""
-
-
 
 
 class CancelReservationView(LoginRequiredMixin, View):
@@ -100,20 +82,6 @@ class TopView(View):
         return render(request,"top.html",context)
 
 
-
-"""class RestaurantView(LoginRequiredMixin,View):
-    def get(self,request,pk):
-        
-        print(pk)
-
-        context = {}
-
-        context["restaurant"] = Restaurant.objects.filter(id=pk).first()
-
-        context["reviews"] = Review.objects.filter(restaurant=pk)
-
-        return render(request, "restaurant.html",context)
-"""
 class RestaurantView(LoginRequiredMixin, View):
     def get(self, request, pk):
         restaurant = Restaurant.objects.filter(id=pk).first()
@@ -130,34 +98,6 @@ class RestaurantView(LoginRequiredMixin, View):
         return render(request, "restaurant.html", context)
 
 
-"""class ReviewView(LoginRequiredMixin, View):
-    def post(self,request,pk):
-
-        print(pk, "に対してレビュー")
-
-        restaurant = Restaurant.objects.filter(id=pk).first()
-        request.user
-        request.POST["content"]        
-
-        
-        review = Review(restaurant=restaurant, user=request.user, content=request.POST["content"])
-        review.save()   
-        
-        
-        copied = request.POST.copy()
-        copied["user"] = request.user
-        copied["restaurant"] = restaurant
-
-        ReviewForm(copied)    
-
-        if form.is_valid():
-            print("バリデーションOK")
-            form.save()
-        else:
-            print(form.errors)
-
-        return redirect("top")
-"""
 class ReviewView(LoginRequiredMixin, View):
     def post(self, request, pk):
         print(pk, "に対してレビュー")
@@ -193,25 +133,6 @@ class ReviewView(LoginRequiredMixin, View):
                 "error": "レビューの投稿に失敗しました。"  # 失敗時のエラーメッセージ
             })
 
-
-"""class FavoriteView(LoginRequiredMixin,View):
-    def post(self, request,pk):
-        restaurant = Restaurant.objects.filter(id=pk).first()
-
-        copied = request.POST.copy()
-        copied["user"] = request.user
-        copied["restaurant"] = restaurant
-
-        form = FavoriteForm(copied)
-
-        if form.is_valid():
-            print("バリデーションOK")
-            form.save()
-        else:
-            print(form.errors)
-
-        return redirect("top")
-"""
 class FavoriteView(LoginRequiredMixin, View):
     def post(self, request, pk):
         # 有料会員かどうか確認
@@ -245,26 +166,6 @@ class FavoriteView(LoginRequiredMixin, View):
         return redirect("restaurant", pk=pk)
 
 
-
-"""class ReservationView(LoginRequiredMixin,View):
-    def post(self, request,pk):
-
-        restaurant = Restaurant.objects.filter(id=pk).first()   
-        copied = request.POST.copy()
-        copied["user"] = request.user
-        copied["restaurant"] = restaurant
-
-
-        form = ReservationForm(copied)
-
-        if form.is_valid():
-            print("バリデーションOK")
-            form.save()
-        else:
-            print(form.errors)
-
-        return redirect("top")
-"""
 class ReservationView(LoginRequiredMixin, View):
     def post(self, request, pk):
         # 有料会員かどうか確認
@@ -488,54 +389,6 @@ class DeleteReviewView(LoginRequiredMixin, View):
 """
 class EditProfileView(View):
     def get(self, request):
-        # ユーザーのプロフィール情報を取得し、フォームに渡す
-        form = UserProfileForm(instance=request.user)
-
-        context = {
-            'form': form
-        }
-
-        return render(request, "edit_profile.html", context)
-
-    def post(self, request):
-        # フォームをPOSTデータで初期化
-        form = UserProfileForm(request.POST, instance=request.user)
-
-        if form.is_valid():
-            # フォームが有効な場合
-            new_password = form.cleaned_data.get('password')
-            if new_password:
-                # パスワードが変更された場合
-                request.user.set_password(new_password)
-                request.user.save()
-                # セッションの認証情報を更新
-                update_session_auth_hash(request, request.user)
-            else:
-                # パスワードが変更されていない場合は、他の情報を保存
-                form.save()
-
-            # 更新後、マイページにリダイレクト
-            return redirect('mypage')
-
-        # フォームが無効な場合、再度フォームを表示
-        return render(request, "edit_profile.html", {'form': form})
-
-def mypage_view(request):
-    # プレミアム会員情報を取得
-    is_premium = PremiumUser.objects.filter(user=request.user, is_active=True).exists()
-
-    context = {
-        'favorites': Favorite.objects.filter(user=request.user),
-        'reviews': Review.objects.filter(user=request.user),
-        'reservations': Reservation.objects.filter(user=request.user),
-        'is_premium': is_premium,  # プレミアム会員かどうかを渡す
-    }
-
-    return render(request, 'mypage.html', context)
-"""
-
-class EditProfileView(View):
-    def get(self, request):
         # 各フォームのインスタンスを作成
         email_form = UserProfileForm(instance=request.user)
         name_form = UserProfileForm(instance=request.user)
@@ -574,6 +427,43 @@ class EditProfileView(View):
             'email_form': email_form,
             'name_form': name_form,
             'password_form': password_form
+        })
+"""
+class EditProfileView(View):
+    def get(self, request):
+        # 初期フォームを表示する（まだ変更されていない状態）
+        email_form = UserProfileForm(instance=request.user)
+        name_form = UserProfileForm(instance=request.user)
+        password_form = PasswordChangeForm(user=request.user)
+
+        # フォーム送信前の状態ではユーザー情報をそのまま表示
+        return render(request, 'edit_profile.html', {
+            'email_form': email_form,
+            'name_form': name_form,
+            'password_form': password_form,
+            'user': request.user,  # 現在のユーザー情報を表示
+            'updated': False,  # 初回表示なので更新なし
+        })
+
+    def post(self, request):
+        # フォーム送信後の処理
+        email_form = UserProfileForm(request.POST, instance=request.user)
+        name_form = UserProfileForm(request.POST, instance=request.user)
+        password_form = PasswordChangeForm(user=request.user, data=request.POST)
+
+        # フォームが有効ならデータを保存
+        if email_form.is_valid():
+            email_form.save()
+        if name_form.is_valid():
+            name_form.save()
+        if password_form.is_valid():
+            password_form.save()
+            update_session_auth_hash(request, request.user)  # パスワード変更後のセッション更新
+
+        # 更新された情報を表示するため、フォームを隠して変更後の情報だけを表示
+        return render(request, 'edit_profile.html', {
+            'user': request.user,  # 更新後のユーザー情報
+            'updated': True,  # フラグをTrueにして変更後の表示を示す
         })
 
 class CancelPremiumView(View):
